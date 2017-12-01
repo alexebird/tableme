@@ -6,8 +6,7 @@ import (
 	"os"
 	//"strconv"
 	"strings"
-
-	_ "github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
 )
 
 type cell interface {
@@ -156,11 +155,8 @@ func parseHeaders(headerArgs []string, colCount int) ([]cell, int) {
 	return headers, len(headersMap)
 }
 
-func TableMePtr(headerArgs []string, records [][]*string) error {
-	return nil
-}
-
 func TableMe(headerArgs []string, records [][]string) error {
+	//spew.Dump(records)
 	if len(records) == 0 {
 		os.Exit(0)
 	}
@@ -199,7 +195,13 @@ func TableMe(headerArgs []string, records [][]string) error {
 
 	for _, row := range records {
 		for j, cell := range row {
+			//var l int
+
+			//if cell != nil {
 			l := len(cell)
+			//} else {
+			//l = 0
+			//}
 
 			if l > colWidths[j] {
 				colWidths[j] = l
@@ -218,11 +220,25 @@ func TableMe(headerArgs []string, records [][]string) error {
 		cells = append(cells, rowCells)
 	}
 
-	//spew.Dump([][]cell{headers})
 	printTable([][]cell{headers}, headers, colWidths)
-
-	//spew.Dump(cells)
 	printTable(cells, headers, colWidths)
 
 	return nil
 }
+
+//func TableMe(headerArgs []string, records [][]string) error {
+//ptrRecords := make([][]*string, len(records))
+
+//for i, row := range records {
+//var rowSlice []*string = make([]*string, len(row))
+
+//for j, cell := range row {
+//rowSlice[j] = cell
+//spew.Dump(rowSlice)
+//}
+
+//ptrRecords[i] = rowSlice
+//}
+
+//return TableMePtr(headerArgs, ptrRecords)
+//}
