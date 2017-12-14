@@ -1,12 +1,12 @@
 package tableme
 
 import (
+	"bytes"
 	"fmt"
+	//"github.com/davecgh/go-spew/spew"
 	"log"
 	"os"
-	//"strconv"
 	"strings"
-	//"github.com/davecgh/go-spew/spew"
 )
 
 type cell interface {
@@ -33,7 +33,7 @@ func (d data) val() string {
 	return d.text
 }
 
-func printTable(records [][]cell, headers []cell, colWidths []int) {
+func bufferTable(buff *bytes.Buffer, records [][]cell, headers []cell, colWidths []int) {
 	var rightMargin string
 	var nCells int
 	var hdr header
@@ -46,7 +46,7 @@ func printTable(records [][]cell, headers []cell, colWidths []int) {
 
 			if hdr.hideCol {
 				if j == nCells-1 {
-					fmt.Print("\n")
+					buff.WriteString(fmt.Sprintf("\n"))
 				}
 			} else {
 				if j == nCells-1 {
@@ -55,17 +55,24 @@ func printTable(records [][]cell, headers []cell, colWidths []int) {
 					rightMargin = "  "
 				}
 
-				format := fmt.Sprintf("%%-%ds%s", colWidths[j], rightMargin)
+				colWidth := colWidths[j]
+
+				// dont leave trailing spaces on the last column.
+				if j == nCells-1 {
+					colWidth = len(cell.val())
+				}
+
+				format := fmt.Sprintf("%%-%ds%s", colWidth, rightMargin)
 
 				switch cell.(type) {
 				case header:
 					if hdr.hideHeaderText {
-						fmt.Printf(format, strings.Repeat(" ", colWidths[j]))
+						buff.WriteString(fmt.Sprintf(format, strings.Repeat(" ", colWidths[j])))
 					} else {
-						fmt.Printf(format, cell.val())
+						buff.WriteString(fmt.Sprintf(format, cell.val()))
 					}
 				default:
-					fmt.Printf(format, cell.val())
+					buff.WriteString(fmt.Sprintf(format, cell.val()))
 				}
 			}
 		}
@@ -77,7 +84,6 @@ func parseHeaders(headerArgs []string, colCount int) ([]cell, int) {
 	var hideCol bool
 	var hideHeaderText bool
 	var shift int
-	//var err error
 	var headersMap map[string]header = make(map[string]header)
 
 	for i, cell := range headerArgs {
@@ -86,30 +92,16 @@ func parseHeaders(headerArgs []string, colCount int) ([]cell, int) {
 		hideCol = false
 		hideHeaderText = false
 		shift = 0
-		//err = nil
 
 		if len(s) > 1 {
 			opts := strings.Split(s[1], ",")
 
 			for _, opt := range opts {
-				//fmt.Printf("%s\n", opt)
 
 				if opt == "." {
 					hideCol = true
 				} else if opt == "_" {
 					hideHeaderText = true
-					//} else if opt[0] == '{' || opt[0] == '}' {
-					//num := opt[1:]
-
-					//shift, err = strconv.Atoi(num)
-					//if err != nil {
-					//fmt.Printf("couldn't convert %s to number\n", num)
-					//os.Exit(1)
-					//}
-
-					//if opt[0] == '{' {
-					//shift = -shift
-					//}
 				} else {
 					fmt.Printf("unknown option: %s\n", opt)
 					os.Exit(1)
@@ -133,29 +125,10 @@ func parseHeaders(headerArgs []string, colCount int) ([]cell, int) {
 		}
 	}
 
-	//spew.Dump(headersMap)
-
-	// reconcile shifts
-	//shift = 0
-	//var hdr header
-	//for i := 0; i < len(headers); i++ {
-	//hdr = headers[i]
-	//shift = hdr.shift
-
-	//if shift < 0 {
-	//// swap i with it's left neighbor "shift" times
-	//for j := 0; j < -shift; j++ {
-
-	//}
-	//} else if shift < 0 {
-
-	//}
-	//}
-
 	return headers, len(headersMap)
 }
 
-func TableMe(headerArgs []string, records [][]string) error {
+func TableMe(headerArgs []string, records [][]string) []byte {
 	//spew.Dump(records)
 	if len(records) == 0 {
 		os.Exit(0)
@@ -195,13 +168,7 @@ func TableMe(headerArgs []string, records [][]string) error {
 
 	for _, row := range records {
 		for j, cell := range row {
-			//var l int
-
-			//if cell != nil {
 			l := len(cell)
-			//} else {
-			//l = 0
-			//}
 
 			if l > colWidths[j] {
 				colWidths[j] = l
@@ -220,25 +187,9 @@ func TableMe(headerArgs []string, records [][]string) error {
 		cells = append(cells, rowCells)
 	}
 
-	printTable([][]cell{headers}, headers, colWidths)
-	printTable(cells, headers, colWidths)
+	var buffer *bytes.Buffer = &bytes.Buffer{}
+	bufferTable(buffer, [][]cell{headers}, headers, colWidths)
+	bufferTable(buffer, cells, headers, colWidths)
 
-	return nil
+	return buffer.Bytes()
 }
-
-//func TableMe(headerArgs []string, records [][]string) error {
-//ptrRecords := make([][]*string, len(records))
-
-//for i, row := range records {
-//var rowSlice []*string = make([]*string, len(row))
-
-//for j, cell := range row {
-//rowSlice[j] = cell
-//spew.Dump(rowSlice)
-//}
-
-//ptrRecords[i] = rowSlice
-//}
-
-//return TableMePtr(headerArgs, ptrRecords)
-//}

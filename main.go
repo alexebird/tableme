@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -37,8 +38,10 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		records := readCsv(os.Stdin)
-		err := tableme.TableMe(c.Args(), records)
-		return err
+		bites := tableme.TableMe(c.Args(), records)
+		buff := bytes.NewBuffer(bites)
+		fmt.Print(buff.String())
+		return nil
 	}
 
 	app.Run(os.Args)

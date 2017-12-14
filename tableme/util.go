@@ -8,6 +8,10 @@ func StringifyBool(b bool) string {
 	return strconv.FormatBool(b)
 }
 
+func StringifyIntPtr(i *int64) string {
+	return strconv.FormatInt(*i, 10)
+}
+
 func StringifyStringPtr(s *string) string {
 	return WithEmptyStringDefault(s)
 }
