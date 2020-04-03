@@ -128,7 +128,7 @@ func parseHeaders(headerArgs []string, colCount int) ([]cell, int) {
 	return headers, len(headersMap)
 }
 
-func TableMe(headerArgs []string, records [][]string) []byte {
+func TableMe(headerArgs []string, records [][]string, noHeaders bool) []byte {
 	//spew.Dump(records)
 	if len(records) == 0 {
 		os.Exit(0)
@@ -188,7 +188,9 @@ func TableMe(headerArgs []string, records [][]string) []byte {
 	}
 
 	var buffer *bytes.Buffer = &bytes.Buffer{}
-	bufferTable(buffer, [][]cell{headers}, headers, colWidths)
+	if !noHeaders {
+		bufferTable(buffer, [][]cell{headers}, headers, colWidths)
+	}
 	bufferTable(buffer, cells, headers, colWidths)
 
 	return buffer.Bytes()
