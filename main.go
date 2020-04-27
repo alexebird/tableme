@@ -38,7 +38,7 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		records := readCsv(os.Stdin)
-		bites := tableme.TableMe(c.Args(), records)
+		bites := tableme.TableMe(c.Args(), records, false)
 		buff := bytes.NewBuffer(bites)
 		fmt.Print(buff.String())
 		return nil
